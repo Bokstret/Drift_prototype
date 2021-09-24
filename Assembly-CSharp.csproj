@@ -53,14 +53,11 @@
     <UnityVersion>2020.3.18f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
+    <Compile Include="Assets\Scripts\UI.cs" />
+    <Compile Include="Assets\Scripts\DriftBar.cs" />
     <Compile Include="Assets\Scripts\CarController.cs" />
     <Compile Include="Assets\Scripts\GoToClick.cs" />
     <Compile Include="Assets\Scripts\VehicleCamera.cs" />
-    <Compile Include="Assets\Scripts\DriftBar.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Shader\RadialFill.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

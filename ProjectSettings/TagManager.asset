@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Dangerous
+  - Detect
   layers:
   - Default
   - TransparentFX

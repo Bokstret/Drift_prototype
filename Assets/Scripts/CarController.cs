@@ -66,10 +66,18 @@ public class CarController : MonoBehaviour
 
     private void UpdateSingleWheel(WheelCollider wheelCollider, Transform wheelTransform)
     {
-        Vector3 pos;
-        Quaternion rot
-;       wheelCollider.GetWorldPose(out pos, out rot);
-        wheelTransform.rotation = rot;
-        wheelTransform.position = pos;
+        if(GoToClick.moving == true)
+        {
+            wheelTransform.rotation = new Quaternion(0,0,0,0);
+        }
+        else
+        {
+            Vector3 pos;
+            Quaternion rot;
+            wheelCollider.GetWorldPose(out pos, out rot);
+            wheelTransform.rotation = rot;
+            wheelTransform.position = pos;
+        }
+
     }
 }

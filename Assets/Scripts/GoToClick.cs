@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using static System.Math;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine;
 
@@ -8,28 +9,39 @@ public class GoToClick : MonoBehaviour
 {
     private Vector3 targetPosition;
     private Vector3 lookAtTarget;
+    private Vector3 mousePosition;
     private Quaternion playerRot;
+    private int screenCenter;
     private int side;
     private int points;
     private int status = 1;
     private int driftTime;
     private float rotationSpeed = 5;
-    private float moveSpeed = 10;
+    private float moveSpeed = 5;
+    private bool earning = true;
     public static bool moving = false;
     public static bool drifting = false;
     public Transform pointsBar;
-    public Transform deathStatus;
+    public GameObject prefab;
 
     void Start()
     {
-        InvokeRepeating("GetPoints", 0, 1);
+        screenCenter = Screen.width / 2;
+        InvokeRepeating("GetPoints", 0, 1); 
     }
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
+            if (!earning)
+            {
+                earning = true;
+                InvokeRepeating("GetPoints", 0, 1);
+            }
+            CarController.horizontalInput = 0;
+            mousePosition = Input.mousePosition;
             driftTime = 0;
-            CancelInvoke("losePoints");
+            CancelInvoke("LosePoints");
             SetCarPosition();
         }
         if (moving)
@@ -44,7 +56,7 @@ public class GoToClick : MonoBehaviour
                 Drift(side);
             }
         }
-        pointsBar.GetComponent<Text>().text = (points).ToString() + " points";
+        pointsBar.GetComponent<Text>().text = "Очков: " + (points).ToString();
     }
 
     void SetCarPosition()
@@ -55,44 +67,33 @@ public class GoToClick : MonoBehaviour
         if (Physics.Raycast(ray, out hit, 1000))
         {
             targetPosition = hit.point;
-
             lookAtTarget = new Vector3(targetPosition.x - transform.position.x, transform.position.y, targetPosition.z - transform.position.z);
             playerRot = Quaternion.LookRotation(lookAtTarget);
+            drifting = false;
+            moving = true;
+            status = 1;
+            Instantiate(prefab, hit.point, Quaternion.identity);
 
-            if (Mathf.Abs(targetPosition.y - transform.position.y) < 0.1f)
-                if (targetPosition.z > transform.position.z)
-                {
-                    drifting = false;
-                    moving = true;
-                    status = 1;
-                }
-
-
-            if (targetPosition.x < transform.position.x)
+            if (mousePosition.x < screenCenter)
             {
                 side = -1;
                 DriftBar.status = -1;
             }
 
-            else
+            if (mousePosition.x > screenCenter)
             {
                 side = 1;
                 DriftBar.status = 1;
             }
+
+
+
         }
     }
+
     void Move()
     {
         transform.rotation = Quaternion.Slerp(transform.rotation, playerRot, rotationSpeed * Time.deltaTime);
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-        if (transform.position == targetPosition)
-        {
-            moving = false;
-            InvokeRepeating("losePoints", 0, 1);
-            drifting = true;
-            status = 2;
-        }
-            
     }
 
     void Drift(int side)
@@ -108,25 +109,39 @@ public class GoToClick : MonoBehaviour
             points += 3;
     }
 
-    void losePoints()
+    void LosePoints()
     {
         driftTime += 1;
 
         if (driftTime >= 8)
-            points -= 21;   
+        {
+            CancelInvoke("GetPoints");
+            earning = false;
+            points -= 21;
+        }
     }
 
-    void TurnOffDeath()
-    {
-        deathStatus.GetComponent<Text>().enabled = false;
-    }
 
     void OnCollisionEnter(Collision coll)
     {
         if (coll.gameObject.tag == "Dangerous")
         {
-            deathStatus.GetComponent<Text>().enabled = true;
-            Invoke("TurnOffDeath", 1.5f);
+            GoToClick.drifting = false;
+            CarController.horizontalInput = 0;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Detect")
+        {
+            moving = false;
+            InvokeRepeating("LosePoints", 0, 1);
+            drifting = true;
+            status = 2;
+            Destroy(other.gameObject);
         }
     }
 }
